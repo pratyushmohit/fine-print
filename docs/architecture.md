@@ -526,7 +526,7 @@ fine-print/
   tests/            unit, contract, integration, eval, fixtures
   scripts/          preflight, render-configmap, seed-profile (called by the Makefile)
   docs/             architecture.md, requirements.md
-  docker-compose.yml  Floci, pinned, with Bedrock proxy configuration
+  docker-compose.yml  Floci and its web console (both pinned), Bedrock proxy configuration
   Dockerfile, Makefile
 ```
 

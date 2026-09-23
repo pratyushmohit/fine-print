@@ -27,11 +27,37 @@ services:
       # Any Bedrock modelId without an explicit mapping resolves to this Ollama model: the
       # repo's derived model created by `make model` (IAC-8), not the base model.
       FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_DEFAULT_MODEL: ${FINEPRINT_MODEL:-fineprint-qwen3.5}
+      # Floci would otherwise launch the web console itself, outside this compose project.
+      # The console is declared below instead, so it is versioned and cleaned up with the rest.
+      FLOCI_SERVICES_UI_ENABLED: "false"
     networks:
       fineprint:
         # Fixed address so pods can reach Floci by IP if cluster DNS can't resolve "floci"
         # (see requirements D0-4).
         ipv4_address: 172.28.0.10
+
+  # Web console for browsing Floci's resources: http://localhost:4500
+  floci-ui:
+    image: floci/floci-ui:0.5.0 # pinned, like Floci
+    container_name: floci-ui
+    ports:
+      - "4500:4500"
+    environment:
+      # The same settings Floci injects when it launches the console itself.
+      PORT: "4500"
+      FLOCI_CLOUD: aws
+      FLOCI_HOSTNAME: floci
+      FLOCI_ENDPOINT: http://floci:4566
+      AWS_ENDPOINT_URL: http://floci:4566
+      AWS_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    depends_on:
+      floci:
+        condition: service_healthy
+    networks:
+      - fineprint
 
 networks:
   fineprint:

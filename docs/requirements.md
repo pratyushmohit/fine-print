@@ -165,7 +165,10 @@ Check any addition against this list before building it.
 - **IAC-6** `make api` runs `kubectl port-forward svc/api 8080:80` in the foreground. It is kept
   out of `make up` so no background process is left orphaned.
 - **IAC-7** The repo owns Floci's configuration (`docker-compose.yml`); no externally started
-  Floci container is assumed. The Floci image is pinned to a version, not `latest`.
+  Floci container is assumed. The Floci image is pinned to a version, not `latest`. The web
+  console (`floci/floci-ui`, pinned) is a compose service at `http://localhost:4500`, and
+  Floci's own on-demand console launcher is disabled, so every container belongs to the
+  `fineprint` compose project.
 - **IAC-8** The repo owns its model configuration without changing global Ollama settings.
   `make up` creates a derived model `fineprint-<base>` from `FINEPRINT_BASE_MODEL` (default
   `qwen3.5`) with `num_ctx = FINEPRINT_CONTEXT` (default 16384) baked in; Floci's Bedrock proxy
