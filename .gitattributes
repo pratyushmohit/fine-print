@@ -1,0 +1,7 @@
+# Keep LF line endings everywhere: scripts, YAML and Makefiles run in Linux containers,
+# k3s and Git Bash, where CRLF breaks them.
+* text=auto eol=lf
+
+*.jpg binary
+*.jpeg binary
+*.png binary

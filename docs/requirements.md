@@ -157,8 +157,10 @@ Check any addition against this list before building it.
   Every step is safe to re-run: running `make up` twice changes nothing the second time.
 - **IAC-4** Prerequisites, checked by preflight: Docker Desktop running; Ollama running on
   `:11434`; `terraform`, `kubectl`, `aws`, `uv` on `PATH`. The Makefile runs under a POSIX
-  shell (Git Bash on Windows). One-time manual setup, which `make up` cannot do: install the
-  tools, start Ollama, set `OLLAMA_CONTEXT_LENGTH=16384`.
+  shell (Git Bash on Windows; from PowerShell, `bash` resolves to WSL, which preflight
+  rejects). One-time manual setup, which `make up` cannot do: install the tools, start
+  Ollama, set its context length to 16384 in the Ollama app's settings. The `model` step
+  warns if the loaded context exceeds 32768 or the model is not 100% on the GPU.
 - **IAC-5** `make down` reverses `make up`: `kubectl delete -k` → `terraform destroy
   -auto-approve` → `docker compose down -v`. `make down && make up` must succeed.
 - **IAC-6** `make api` runs `kubectl port-forward svc/api 8080:80` in the foreground. It is kept

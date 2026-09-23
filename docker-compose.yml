@@ -1,0 +1,40 @@
+# Floci: the local AWS emulator everything runs against. Owned by this repo (IAC-7).
+# Started by `make floci` / `make up`; removed by `make down`.
+name: fineprint
+
+services:
+  floci:
+    image: floci/floci:2.1.0 # pinned; bump deliberately, not via :latest
+    container_name: floci
+    ports:
+      - "4566:4566" # every AWS API; k3s API ports (6500-6599) are published by Floci itself
+    volumes:
+      # Floci starts sibling containers (k3s for EKS, the ECR registry) through the host daemon.
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      # Docker Desktop provides this name already; the mapping makes it work on Linux too.
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Name other containers use to reach Floci; appears in returned URLs (e.g. SQS QueueUrl).
+      FLOCI_HOSTNAME: floci
+      # memory = clean slate on every `make down`; nothing survives a restart.
+      FLOCI_STORAGE_MODE: memory
+      # Spawned containers (k3s, ECR registry) join this network so they can reach Floci.
+      FLOCI_SERVICES_DOCKER_NETWORK: fineprint
+      # Bedrock Runtime: forward Converse calls to Ollama on the host instead of the stub.
+      FLOCI_SERVICES_BEDROCK_RUNTIME_BACKEND: proxy
+      FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_URL: http://host.docker.internal:11434/v1
+      # Any Bedrock modelId without an explicit mapping resolves to this Ollama model.
+      FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_DEFAULT_MODEL: ${FINEPRINT_MODEL:-qwen3.5}
+    networks:
+      fineprint:
+        # Fixed address so pods can reach Floci by IP if cluster DNS can't resolve "floci"
+        # (see requirements D0-4).
+        ipv4_address: 172.28.0.10
+
+networks:
+  fineprint:
+    name: fineprint
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

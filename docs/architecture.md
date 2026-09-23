@@ -462,8 +462,10 @@ Checked on the development machine 2026-09-23:
 One model serves every agent: the vision path (Ollama direct) and the text path (Bedrock
 proxy → Ollama) both point at `qwen3.5`.
 
-**Watch:** `OLLAMA_CONTEXT_LENGTH` is set to 262144. A context that large reserves a very
-big KV cache and can push the model partly onto the CPU. 16384 is plenty for this project.
+**Watch:** Ollama's context length is set to 262144 in the Ollama app's settings (not via an
+environment variable). At that size `qwen3.5` occupies 14 GB of the 16 GB VRAM because of the
+reserved KV cache. 16384 is plenty for this project. `make model` warns when the loaded
+context exceeds 32768 or the model is not 100% on the GPU.
 
 ## 6. Floci-specific constraints
 
@@ -533,5 +535,6 @@ make api    # port-forward to localhost:8080 (foreground)
 make down   # kubectl delete → terraform destroy → docker compose down
 ```
 
-The one-time manual setup is installing the tools, starting Ollama, and setting
-`OLLAMA_CONTEXT_LENGTH`. Everything else is `make up`. See requirements IAC-3 to IAC-7.
+The one-time manual setup is installing the tools, starting Ollama, and setting its context
+length to 16384 in the Ollama app's settings. Everything else is `make up`. Run `make` from
+Git Bash: from PowerShell, `bash` resolves to WSL. See requirements IAC-3 to IAC-7.
