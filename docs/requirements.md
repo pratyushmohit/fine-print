@@ -158,15 +158,22 @@ Check any addition against this list before building it.
 - **IAC-4** Prerequisites, checked by preflight: Docker Desktop running; Ollama running on
   `:11434`; `terraform`, `kubectl`, `aws`, `uv` on `PATH`. The Makefile runs under a POSIX
   shell (Git Bash on Windows; from PowerShell, `bash` resolves to WSL, which preflight
-  rejects). One-time manual setup, which `make up` cannot do: install the tools, start
-  Ollama, set its context length to 16384 in the Ollama app's settings. The `model` step
-  warns if the loaded context exceeds 32768 or the model is not 100% on the GPU.
+  rejects). One-time manual setup, which `make up` cannot do: install the tools and start
+  Ollama. No Ollama settings need changing (IAC-8).
 - **IAC-5** `make down` reverses `make up`: `kubectl delete -k` → `terraform destroy
   -auto-approve` → `docker compose down -v`. `make down && make up` must succeed.
 - **IAC-6** `make api` runs `kubectl port-forward svc/api 8080:80` in the foreground. It is kept
   out of `make up` so no background process is left orphaned.
 - **IAC-7** The repo owns Floci's configuration (`docker-compose.yml`); no externally started
   Floci container is assumed. The Floci image is pinned to a version, not `latest`.
+- **IAC-8** The repo owns its model configuration without changing global Ollama settings.
+  `make up` creates a derived model `fineprint-<base>` from `FINEPRINT_BASE_MODEL` (default
+  `qwen3.5`) with `num_ctx = FINEPRINT_CONTEXT` (default 16384) baked in; Floci's Bedrock proxy
+  and the extraction agent use that derived model. `make down` deletes it; the base model is
+  kept. A model's own `num_ctx` overrides the global Ollama context setting on both the native
+  and OpenAI-compatible APIs (verified 2026-09-23: 262144 → 16384, 14 GB → 6.0 GB VRAM).
+  The `model` step warns if the loaded context differs from the configured one or the model
+  is not 100% on the GPU.
 
 ## 8. Kubernetes
 

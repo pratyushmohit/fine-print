@@ -460,12 +460,15 @@ Checked on the development machine 2026-09-23:
 | Floci | 2.1.0; to be run from the repo's `docker-compose.yml` on `:4566` |
 
 One model serves every agent: the vision path (Ollama direct) and the text path (Bedrock
-proxy → Ollama) both point at `qwen3.5`.
+proxy → Ollama) both point at the derived model `fineprint-qwen3.5`.
 
-**Watch:** Ollama's context length is set to 262144 in the Ollama app's settings (not via an
-environment variable). At that size `qwen3.5` occupies 14 GB of the 16 GB VRAM because of the
-reserved KV cache. 16384 is plenty for this project. `make model` warns when the loaded
-context exceeds 32768 or the model is not 100% on the GPU.
+**Context length.** Ollama reserves GPU memory (the KV cache) for a model's full context
+length when it loads, used or not. The global setting on this machine is 262144, which makes
+`qwen3.5` occupy 14 GB of the 16 GB VRAM. FinePrint requests stay under ~10k tokens, so the
+repo creates its own derived model, `fineprint-qwen3.5`, with `num_ctx 16384` baked in: 6.0 GB,
+100% on the GPU. The derived model shares the base model's weights, and `make down` deletes it,
+so global Ollama settings are never changed (requirements IAC-8). This can't be done per
+request, because Floci's proxy speaks the OpenAI-compatible API, which has no `num_ctx` field.
 
 ## 6. Floci-specific constraints
 
@@ -535,6 +538,6 @@ make api    # port-forward to localhost:8080 (foreground)
 make down   # kubectl delete → terraform destroy → docker compose down
 ```
 
-The one-time manual setup is installing the tools, starting Ollama, and setting its context
-length to 16384 in the Ollama app's settings. Everything else is `make up`. Run `make` from
-Git Bash: from PowerShell, `bash` resolves to WSL. See requirements IAC-3 to IAC-7.
+The one-time manual setup is installing the tools and starting Ollama. Everything else is
+`make up`, including the repo's own model with its context length (IAC-8). Run `make` from
+Git Bash: from PowerShell, `bash` resolves to WSL. See requirements IAC-3 to IAC-8.

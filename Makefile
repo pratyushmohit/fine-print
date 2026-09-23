@@ -2,7 +2,11 @@
 # `make up` grows one step at a time as the build progresses (IAC-3).
 SHELL := bash
 
-export FINEPRINT_MODEL ?= qwen3.5
+# Model configuration (IAC-8). make up creates $(FINEPRINT_MODEL) from the base model with
+# this context length; make down deletes it. Global Ollama settings are never changed.
+export FINEPRINT_BASE_MODEL ?= qwen3.5
+export FINEPRINT_CONTEXT ?= 16384
+export FINEPRINT_MODEL := fineprint-$(FINEPRINT_BASE_MODEL)
 
 .PHONY: up down preflight floci model
 
@@ -21,3 +25,4 @@ model:
 
 down:
 	docker compose down -v --remove-orphans
+	@bash scripts/model-remove.sh

@@ -24,8 +24,9 @@ services:
       # Bedrock Runtime: forward Converse calls to Ollama on the host instead of the stub.
       FLOCI_SERVICES_BEDROCK_RUNTIME_BACKEND: proxy
       FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_URL: http://host.docker.internal:11434/v1
-      # Any Bedrock modelId without an explicit mapping resolves to this Ollama model.
-      FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_DEFAULT_MODEL: ${FINEPRINT_MODEL:-qwen3.5}
+      # Any Bedrock modelId without an explicit mapping resolves to this Ollama model: the
+      # repo's derived model created by `make model` (IAC-8), not the base model.
+      FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_DEFAULT_MODEL: ${FINEPRINT_MODEL:-fineprint-qwen3.5}
     networks:
       fineprint:
         # Fixed address so pods can reach Floci by IP if cluster DNS can't resolve "floci"
