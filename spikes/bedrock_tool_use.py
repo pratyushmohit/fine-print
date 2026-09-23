@@ -1,9 +1,9 @@
-"""D0-2: does a forced tool call through Floci's Bedrock proxy return a structured toolUse block?
+"""Does a forced tool call through Floci's Bedrock proxy return a structured toolUse block?
 
 Path under test: boto3 bedrock-runtime `converse` -> Floci (proxy backend)
 -> Ollama /v1/chat/completions -> fineprint-qwen3.5, and back.
 
-Run: uv run python spikes/d0_2_bedrock_tool_use.py
+Run: uv run python spikes/bedrock_tool_use.py
 """
 
 import json
@@ -97,7 +97,7 @@ def main() -> None:
         passed += 1
         print("PASS")
 
-    print(f"\nD0-2 result: {passed}/{RUNS} runs returned a valid, schema-conforming toolUse block")
+    print(f"\nresult: {passed}/{RUNS} runs returned a valid, schema-conforming toolUse block")
 
 
 if __name__ == "__main__":

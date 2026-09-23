@@ -1,15 +1,17 @@
-"""D0-3: do Floci's Step Functions support the orchestration pattern FinePrint depends on?
+"""Do Floci's Step Functions support the orchestration pattern FinePrint depends on?
 
 Exercises, in one small state machine:
-  - Parallel fan-out to two branches (ORC-1)
-  - arn:aws:states:::sqs:sendMessage.waitForTaskToken (ORC-2)
-  - Retry on ModelError, HeartbeatSeconds, Catch (ORC-3, ORC-4)
-  - direct arn:aws:states:::dynamodb:updateItem integration (ORC-1 MarkFailed)
+  - Parallel fan-out to two branches, joined back into one result
+  - arn:aws:states:::sqs:sendMessage.waitForTaskToken, the pattern for driving workers
+    Step Functions can't invoke directly
+  - Retry on ModelError, HeartbeatSeconds, Catch
+  - the direct arn:aws:states:::dynamodb:updateItem integration, for recording run status
 
-A fake worker in this script plays the role of the EKS pods. Three scenarios:
+A fake worker in this script plays the role of the EKS pods. Scenarios:
   success -> worker answers SendTaskSuccess     -> run SUCCEEDED, item status SUCCEEDED
   fail    -> worker answers SendTaskFailure     -> Retry, then Catch -> item FAILED
   silent  -> worker never answers               -> heartbeat expires -> Catch -> item FAILED
+  stale   -> timed-out worker answers after a Retry was issued -> answer is ignored
 
 Semantics confirmed by the first run (see spikes/README.md):
   - When one Parallel branch fails for good, the other branches are aborted, so a branch
@@ -19,7 +21,7 @@ Semantics confirmed by the first run (see spikes/README.md):
   - A late answer on an expired token: AWS raises TaskTimedOut; Floci 2.1.0 accepts it but
     ignores it. The 'stale' scenario checks it never completes a retried task.
 
-Run: uv run python spikes/d0_3_stepfunctions_task_token.py
+Run: uv run python spikes/stepfunctions_task_token.py
 """
 
 import json
@@ -29,7 +31,7 @@ from collections import Counter
 import boto3
 
 FLOCI_URL = "http://localhost:4566"
-PREFIX = "d0-3"
+PREFIX = "spike-sfn"
 HEARTBEAT_S = 10
 
 aws = dict(
@@ -296,7 +298,7 @@ def main() -> None:
     queue_url, table, sm_arn = setup()
     results = {mode: run_scenario(mode, queue_url, table, sm_arn) for mode in ("success", "fail", "silent")}
     results["stale"] = stale_retry_scenario()
-    print("\nD0-3 result:", ", ".join(f"{m}={'PASS' if ok else 'FAIL'}" for m, ok in results.items()))
+    print("\nresult:", ", ".join(f"{m}={'PASS' if ok else 'FAIL'}" for m, ok in results.items()))
 
 
 if __name__ == "__main__":

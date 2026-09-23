@@ -7,8 +7,8 @@ environment (`make up`) with `uv run python spikes/<script>.py`.
 | Check | Script | Status |
 |-------|--------|--------|
 | D0-1 Vision via Ollama direct | — | pending (needs label photos in `spikes/images/`) |
-| D0-2 Forced tool use via Floci Bedrock proxy | `d0_2_bedrock_tool_use.py` | ✅ PASS |
-| D0-3 Step Functions task-token orchestration | `d0_3_stepfunctions_task_token.py` | ✅ PASS |
+| D0-2 Forced tool use via Floci Bedrock proxy | `bedrock_tool_use.py` | ✅ PASS |
+| D0-3 Step Functions task-token orchestration | `stepfunctions_task_token.py` | ✅ PASS |
 | D0-4 Pod → Floci / Ollama networking | — | pending (needs EKS) |
 | D0-5 Terraform creates EKS on Floci | — | pending |
 

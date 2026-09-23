@@ -1,9 +1,9 @@
-# Run from Git Bash on Windows (see requirements IAC-4).
-# `make up` grows one step at a time as the build progresses (IAC-3).
+# Run from Git Bash on Windows: from PowerShell, `bash` resolves to WSL, which the preflight
+# check rejects.
 SHELL := bash
 
-# Model configuration (IAC-8). make up creates $(FINEPRINT_MODEL) from the base model with
-# this context length; make down deletes it. Global Ollama settings are never changed.
+# make up creates $(FINEPRINT_MODEL) from the base model with this context length; make down
+# deletes it. Global Ollama settings are never changed.
 export FINEPRINT_BASE_MODEL ?= qwen3.5
 export FINEPRINT_CONTEXT ?= 16384
 export FINEPRINT_MODEL := fineprint-$(FINEPRINT_BASE_MODEL)

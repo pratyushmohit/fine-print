@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# make up, step 1 (IAC-4): check prerequisites and fail fast with a clear message.
+# First step of `make up`: check prerequisites and fail fast with a clear message.
 set -uo pipefail
 
 OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434}"

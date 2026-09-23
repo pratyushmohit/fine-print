@@ -1,4 +1,4 @@
-# Floci: the local AWS emulator everything runs against. Owned by this repo (IAC-7).
+# Floci, the local AWS emulator everything runs against, plus its web console.
 # Started by `make floci` / `make up`; removed by `make down`.
 name: fineprint
 
@@ -25,15 +25,15 @@ services:
       FLOCI_SERVICES_BEDROCK_RUNTIME_BACKEND: proxy
       FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_URL: http://host.docker.internal:11434/v1
       # Any Bedrock modelId without an explicit mapping resolves to this Ollama model: the
-      # repo's derived model created by `make model` (IAC-8), not the base model.
+      # derived model `make model` creates with a fixed context length, not the base model.
       FLOCI_SERVICES_BEDROCK_RUNTIME_PROXY_DEFAULT_MODEL: ${FINEPRINT_MODEL:-fineprint-qwen3.5}
       # Floci would otherwise launch the web console itself, outside this compose project.
       # The console is declared below instead, so it is versioned and cleaned up with the rest.
       FLOCI_SERVICES_UI_ENABLED: "false"
     networks:
       fineprint:
-        # Fixed address so pods can reach Floci by IP if cluster DNS can't resolve "floci"
-        # (see requirements D0-4).
+        # Fixed address so Kubernetes pods can still reach Floci by IP if the cluster's DNS
+        # can't resolve the name "floci".
         ipv4_address: 172.28.0.10
 
   # Web console for browsing Floci's resources: http://localhost:4500
