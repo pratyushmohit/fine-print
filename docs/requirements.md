@@ -35,9 +35,12 @@ Check any addition against this list before building it.
   message body of `{run_id, task_token, attempt}` only.
 - **ORC-3** Every Task sets `TimeoutSeconds`, `HeartbeatSeconds`, and `Retry` on `ModelError`
   and `States.Timeout` with exponential backoff. Timeouts are generous, because Floci starts
-  the timeout clock at schedule time.
+  the timeout clock at schedule time. `States.Timeout` also matches heartbeat expiry (Floci
+  reports heartbeat expiry only as `States.Timeout`; verified D0-3).
 - **ORC-4** Extraction failure → `MarkFailed` → run `FAILED`. Analysis branch failure → `Pass`
-  state emitting `{status: "degraded"}`; Synthesis still runs; run ends `DEGRADED`.
+  state emitting `{status: "degraded"}`; Synthesis still runs; run ends `DEGRADED`. The `Catch`
+  must sit **inside each branch**, not on the `Parallel` state: an uncaught branch failure
+  aborts the sibling branches (verified D0-3).
 - **ORC-5** Workflow state carries pointers only; payloads stay far below 256 KB.
 - **ORC-6** The state machine definition lives in `infra/statemachine/fineprint.asl.json`
   and is rendered by Terraform `templatefile` with queue URLs and table name.
@@ -46,7 +49,9 @@ Check any addition against this list before building it.
 
 - **WRK-1** One container image; the entrypoint argument selects the agent.
 - **WRK-2** Long-poll SQS (`WaitTimeSeconds=20`), one message at a time. Delete the message
-  only after reporting the result to Step Functions, or on `TaskTimedOut`.
+  only after reporting the result to Step Functions, or on `TaskTimedOut`. On Floci 2.1.0 a
+  late answer on an expired token is accepted and ignored instead of raising `TaskTimedOut`
+  (verified D0-3); an accepted answer is therefore not proof the result was used.
 - **WRK-3** Idempotent: check `RUN#<id>/AGENT#<name>` first; write output with a conditional
   put; on conflict, return the stored output.
 - **WRK-4** While a task runs, a heartbeat thread calls `SendTaskHeartbeat` and extends the SQS
@@ -214,13 +219,14 @@ Check any addition against this list before building it.
   |-------|--------------------|
   | Kill a worker mid-task | SQS redelivers; idempotent write prevents a duplicate |
   | Model returns malformed JSON | repair retry, then `ModelError` → Step Functions retry |
-  | Worker stalls past `HeartbeatSeconds` | Step Functions retries with a new token; old worker gets `TaskTimedOut` |
+  | Worker stalls past `HeartbeatSeconds` | Step Functions retries with a new token; the old worker's late answer does not change the result (AWS also returns `TaskTimedOut`; Floci does not) |
   | Claims agent always fails | run ends `DEGRADED` |
   | Message fails 3 times | it lands in the DLQ |
 
 ## 11. Day-0 checks (before building)
 
-Each of these could break the design, so check them first.
+Each of these could break the design, so check them first. Scripts and results:
+[spikes/README.md](../spikes/README.md). D0-2 ✅ and D0-3 ✅ passed 2026-09-23.
 
 | # | Check | If it fails |
 |---|-------|-------------|

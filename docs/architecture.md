@@ -480,6 +480,8 @@ request, because Floci's proxy speaks the OpenAI-compatible API, which has no `n
 | Step Functions timeout clock starts at *schedule* time, not pickup | Floci docs | generous `TimeoutSeconds` |
 | EKS add-ons are metadata only; no load balancers / ingress | Floci docs | log shipping from app; `port-forward` |
 | Pod Identity webhook requires TLS | Floci docs | Secret-based credentials as fallback |
+| Heartbeat expiry reported as `States.Timeout`, never `States.HeartbeatTimeout` | D0-3 | Retry/Catch on `States.Timeout` (portable) |
+| Late `SendTaskSuccess` on an expired token is accepted (and ignored) instead of `TaskTimedOut` | D0-3 | Workers don't rely on `TaskTimedOut`; idempotent writes |
 
 ## 7. Architecture decisions
 
